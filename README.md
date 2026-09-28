@@ -2,6 +2,24 @@
 
 Technical assessment scaffold: PostgreSQL 16 with PostGIS for geospatial data, SQL migrations, and pytest.
 
+## Reproducibility (clean checkout)
+
+Prerequisites: [Docker](https://docs.docker.com/get-docker/), Python 3.12+.
+
+**One command** — start database, apply migrations, load deterministic fixtures, run tests:
+
+```bash
+./scripts/bootstrap.sh
+```
+
+**Reset** the local `iris` database (drop/create, re-run migrations; does not remove the Docker volume):
+
+```bash
+./scripts/reset_db.sh
+```
+
+`bootstrap.sh` creates `.env` from `.env.example` if needed, ensures `.venv` + `pip install -e ".[dev]"`, then runs `reset_db.sh` → `seed_data.sh` → pytest.
+
 ## Local database (Docker)
 
 Prerequisites: [Docker](https://docs.docker.com/get-docker/) with Compose.
