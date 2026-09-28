@@ -220,4 +220,10 @@ pip install -e ".[dev]"
 pytest
 ```
 
-Database-related tests expect Docker to be running and migrations applied (`./scripts/rebuild_db.sh` or `python -m iris.migrate`).
+**Rubric / correctness suite** (schemas, tables, geom/SRID, country scope, spatial fixtures, GiST indexes, seeds):
+
+```bash
+pytest tests/test_database_correctness.py -v
+```
+
+Prerequisites: Docker Postgres running, migrations applied (`./scripts/rebuild_db.sh` or `python -m iris.migrate`). Rubric spatial/seed tests load fixtures via `iris.seed_data` (no manual seed step required for that file).
