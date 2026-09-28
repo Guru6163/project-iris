@@ -110,7 +110,7 @@ docker compose exec -T db psql -U iris -d iris < queries/verify_evidence.sql
 | `screening_layer` | Derived screening geometry per run (`source_run_id`, `layer_code`, `geom`) |
 | `evidence` | Links a screening layer to input entities (`entity_type`, `entity_id`) and `source_run_id` |
 
-Provenance fields (`source_id`, `source_date`, `created_at`) appear on business and derived tables. `evidence` uses foreign keys to `screening_layer` (country-scoped composite key) and `source_run`, while `entity_type` + `entity_id` + `country_code` reference parcel/peatland/substation without polymorphic foreign keys.
+Provenance fields (`source_id`, `source_date`, `created_at`) appear on business and derived tables. `source_run` is ingestion metadata and is not country-scoped (runs may feed multiple countries). All other `iris_core` entity tables require `country_code NOT NULL` with primary keys on `(country_code, <entity_id>)`. `evidence` foreign-keys `screening_layer` on `(country_code, screening_layer_id)`; a trigger enforces that `entity_id` resolves to an entity in the same `country_code` and that `source_run_id` matches the linked screening layer.
 
 ### Screening layers (design)
 
