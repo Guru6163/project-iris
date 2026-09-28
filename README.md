@@ -64,6 +64,17 @@ Example checks (after loading the seed):
 docker compose exec -T db psql -U iris -d iris < queries/verify_source_run.sql
 ```
 
+`iris_core.parcel` stores country-scoped parcels (`PRIMARY KEY (country_code, parcel_id)`). Load sample data after `source_run` seed:
+
+```bash
+docker compose exec -T db psql -U iris -d iris -f - < seed/parcel.sql
+docker compose exec -T db psql -U iris -d iris < queries/verify_parcel.sql
+```
+
+### Geometry / CRS
+
+Parcel boundaries use `geom geometry(MultiPolygon, 4326)` — **EPSG:4326 (WGS 84)**. Longitude/latitude in degrees is a practical default for a multi-country pilot, interoperates with common feeds, and keeps one CRS across regions until a country needs a local projected SRID for metric work.
+
 ## Python & tests
 
 Requires Python 3.12+.
