@@ -145,9 +145,23 @@ Provenance fields (`source_id`, `source_date`, `created_at`) appear on business 
 
 `screening_layer` is a **generic derived geometry** table: it stores the output of a screening job as `geom` plus a `layer_code` label (for example `PEATLAND_PARCEL_OVERLAP`), not foreign keys to `parcel`, `peatland`, or `substation`. That avoids duplicating business attributes and keeps one table for multiple pilot screens. Provenance is anchored with `source_run_id` (and the usual `source_id` / `source_date` fields). **`evidence`** stores explainability links from a layer to the country-scoped entities that informed the screen; spatial predicates can still validate those links.
 
-### Geometry / CRS
+### CRS policy
 
-Core geometries use **EPSG:4326 (WGS 84)**. Parcels, peatland, and screening layers are `MultiPolygon`; substations are `Point` for site location and distance screening. Longitude/latitude in degrees is a practical default for a multi-country pilot until a country needs a local projected SRID for metric work.
+| Topic | Policy |
+| --- | --- |
+| **Storage SRID** | **EPSG:4326 (WGS 84)** on every `geom` column (`geometry(..., 4326)` + `ST_SRID(geom) = 4326` checks) |
+| **Why 4326** | One global storage CRS for a multi-country pilot; matches common feeds (GeoJSON, lat/lon APIs) and avoids maintaining per-country tables in mixed SRIDs |
+| **When to transform** | Keep 4326 in the database. Transform **at query time** (e.g. `ST_Transform(geom, <local_epsg>)`) when a country-specific projected CRS is required for engineering-grade planimetric work |
+| **Distance / area** | Use **`geography`** casts for geodesic distance and area in **metres** (`ST_DWithin`, `ST_Area`, `ST_Length` on `geom::geography`). For regional workflows, transform to an appropriate projected UTM / national CRS and use geometry functions in that CRS’s **metre** units |
+| **Unit interpretation** | EPSG:4326 coordinates are **degrees** (lon/lat). `geography` results are **metres**. Projected CRS results use that CRS’s axis units (typically metres) |
+
+Geometry types: parcels, peatland, and screening layers are `MultiPolygon`; substations are `Point`.
+
+CRS round-trip verification (insert via WKT, read SRID, transform to UTM zone 43N for the fixture locale, geodesic area / distance):
+
+```bash
+docker compose exec -T db psql -U iris -d iris < queries/verify_crs.sql
+```
 
 ### Spatial indexes (GiST)
 
@@ -165,11 +179,12 @@ Verify plans (loads pilot seeds, forces index use for demonstration on small fix
 python scripts/verify_spatial_indexes.py
 ```
 
-SQL equivalent:
+SQL equivalents:
 
 ```bash
 docker compose exec -T db psql -U iris -d iris -f - < seed/parcel.sql  # plus other seeds as needed
 docker compose exec -T db psql -U iris -d iris -v ON_ERROR_STOP=1 < queries/explain_spatial_pilot.sql
+docker compose exec -T db psql -U iris -d iris < queries/verify_crs.sql
 ```
 
 ## Python & tests
