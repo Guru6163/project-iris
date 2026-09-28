@@ -149,6 +149,29 @@ Provenance fields (`source_id`, `source_date`, `created_at`) appear on business 
 
 Core geometries use **EPSG:4326 (WGS 84)**. Parcels, peatland, and screening layers are `MultiPolygon`; substations are `Point` for site location and distance screening. Longitude/latitude in degrees is a practical default for a multi-country pilot until a country needs a local projected SRID for metric work.
 
+### Spatial indexes (GiST)
+
+| Table | Index | Pilot use |
+| --- | --- | --- |
+| `iris_core.substation` | `substation_geom_gix` | **BESS:** bbox `&&` on `geom`, then `ST_DWithin` (geography) for distance |
+| `iris_core.peatland` | `peatland_geom_gix` | **Peatland:** `ST_Intersects` with parcels |
+| `iris_core.parcel` | `parcel_geom_gix` | **Both:** parcel side of intersect / proximity joins |
+| `iris_core.screening_layer` | `screening_layer_geom_gix` | Derived footprint ↔ parcel checks (not on hot ingest path) |
+| `iris_staging.parcel` | *(none)* | Promotion is keyed load, not spatial search |
+
+Verify plans (loads pilot seeds, forces index use for demonstration on small fixtures):
+
+```bash
+python scripts/verify_spatial_indexes.py
+```
+
+SQL equivalent:
+
+```bash
+docker compose exec -T db psql -U iris -d iris -f - < seed/parcel.sql  # plus other seeds as needed
+docker compose exec -T db psql -U iris -d iris -v ON_ERROR_STOP=1 < queries/explain_spatial_pilot.sql
+```
+
 ## Python & tests
 
 Requires Python 3.12+.
