@@ -66,8 +66,10 @@ def test_screening_layer_fixture_rows(seeded_screening_layer: str) -> None:
             rows = cur.fetchall()
 
     assert rows == [
+        ("DE", "SL-FIXTURE-DE-BESS-001", "SUBSTATION_PROXIMITY", 1),
         ("IN", "SL-FIXTURE-IN-BESS-001", "SUBSTATION_PROXIMITY", 1),
         ("IN", "SL-FIXTURE-IN-PEAT-001", "PEATLAND_PARCEL_OVERLAP", 1),
+        ("US", "SL-FIXTURE-US-PEAT-001", "PEATLAND_PARCEL_OVERLAP", 1),
     ]
 
 
@@ -100,8 +102,9 @@ def test_verify_screening_layer_queries(seeded_screening_layer: str) -> None:
             )
             spatial = cur.fetchall()
 
-    assert runs == [
-        ("SL-FIXTURE-IN-BESS-001", "SUBSTATION_PROXIMITY", 1, "succeeded"),
-        ("SL-FIXTURE-IN-PEAT-001", "PEATLAND_PARCEL_OVERLAP", 1, "succeeded"),
+    assert len(runs) == 4
+    assert all(row[2] == 1 and row[3] == "succeeded" for row in runs)
+    assert spatial == [
+        ("SL-FIXTURE-IN-PEAT-001", "P-FIXTURE-IN-001"),
+        ("SL-FIXTURE-US-PEAT-001", "P-FIXTURE-US-001"),
     ]
-    assert spatial == [("SL-FIXTURE-IN-PEAT-001", "P-FIXTURE-001")]

@@ -1,4 +1,4 @@
--- Deterministic sample row for local verification and tests.
+-- Core pilot ingestion run (multi-country load).
 INSERT INTO iris_core.source_run (
     source_run_id,
     source_id,
@@ -6,7 +6,6 @@ INSERT INTO iris_core.source_run (
     status,
     started_at,
     completed_at,
-    error_message,
     created_at
 ) VALUES (
     1,
@@ -14,8 +13,7 @@ INSERT INTO iris_core.source_run (
     DATE '2024-06-15',
     'succeeded',
     TIMESTAMPTZ '2024-06-15 10:00:00+00',
-    TIMESTAMPTZ '2024-06-15 10:05:00+00',
-    NULL,
+    TIMESTAMPTZ '2024-06-15 10:30:00+00',
     TIMESTAMPTZ '2024-06-15 10:00:00+00'
 )
 ON CONFLICT (source_run_id) DO NOTHING;

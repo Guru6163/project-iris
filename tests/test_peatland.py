@@ -66,8 +66,9 @@ def test_peatland_fixture_rows(seeded_peatland: str) -> None:
             rows = cur.fetchall()
 
     assert rows == [
-        ("FI", "PL-FIXTURE-FI-001", "19", "observed"),
+        ("DE", "PL-FIXTURE-DE-001", "BY", "observed"),
         ("IN", "PL-FIXTURE-IN-001", "KA", "inferred"),
+        ("US", "PL-FIXTURE-US-001", "VA", "observed"),
     ]
 
 
@@ -112,6 +113,6 @@ def test_verify_peatland_queries(seeded_peatland: str) -> None:
             )
             provenance = cur.fetchall()
 
-    assert overlaps == [("IN", "PL-FIXTURE-IN-001", "P-FIXTURE-001")]
-    assert len(provenance) == 2
+    assert overlaps == [("IN", "PL-FIXTURE-IN-001", "P-FIXTURE-IN-001")]
+    assert len(provenance) == 3
     assert all(row[3] == 1 and row[4] == "succeeded" for row in provenance)

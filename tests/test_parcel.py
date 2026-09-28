@@ -56,12 +56,12 @@ def test_parcel_fixture_row(seeded_parcel: str) -> None:
                 """
                 SELECT country_code, parcel_id, region_code, source_id, source_date::text
                 FROM iris_core.parcel
-                WHERE country_code = 'IN' AND parcel_id = 'P-FIXTURE-001';
+                WHERE country_code = 'IN' AND parcel_id = 'P-FIXTURE-IN-001';
                 """
             )
             row = cur.fetchone()
 
-    assert row == ("IN", "P-FIXTURE-001", "KA", "fixture_vendor_a", "2024-06-15")
+    assert row == ("IN", "P-FIXTURE-IN-001", "KA", "fixture_vendor_a", "2024-06-15")
 
 
 def test_parcel_country_code_not_null(seeded_parcel: str) -> None:
@@ -88,7 +88,7 @@ def test_verify_parcel_queries(seeded_parcel: str) -> None:
     with psycopg.connect(seeded_parcel) as conn:
         with conn.cursor() as cur:
             cur.execute("SELECT COUNT(*) FROM iris_core.parcel;")
-            assert cur.fetchone()[0] == 1
+            assert cur.fetchone()[0] == 3
 
             cur.execute(
                 "SELECT COUNT(*) FROM iris_core.parcel WHERE country_code IS NULL;"
@@ -107,4 +107,4 @@ def test_verify_parcel_queries(seeded_parcel: str) -> None:
             )
             spatial = cur.fetchall()
 
-    assert spatial == [("IN", "P-FIXTURE-001")]
+    assert spatial == [("IN", "P-FIXTURE-IN-001")]

@@ -52,10 +52,32 @@ Apply pending migrations only (safe on an already-initialized database):
 python -m iris.migrate
 ```
 
-`iris_core.source_run` records provenance and execution for each ingestion (`source_id`, `source_date`, `created_at`, run status/timestamps). Load the deterministic sample row:
+### Seed data (deterministic fixtures)
+
+After migrations, load the full pilot fixture set (core tables + staging). **Idempotent** — safe to run multiple times (`ON CONFLICT DO NOTHING`):
 
 ```bash
-docker compose exec -T db psql -U iris -d iris -f - < seed/source_run.sql
+./scripts/seed_data.sh
+```
+
+Or:
+
+```bash
+python -m iris.seed_data
+```
+
+Core only (no staging):
+
+```bash
+python -m iris.seed_data --core-only
+```
+
+See `seed/README.md` for per-file layout. Fixture geography: **IN/KA** (Bangalore), **DE/BE+BY** (Berlin + Bavaria), **US/VA** (DC area).
+
+`iris_core.source_run` records provenance and execution for each ingestion (`source_id`, `source_date`, `created_at`, run status/timestamps). Example checks after seeding:
+
+```bash
+docker compose exec -T db psql -U iris -d iris < queries/verify_source_run.sql
 ```
 
 Example checks (after loading the seed):

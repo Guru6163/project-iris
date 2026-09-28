@@ -1,26 +1,13 @@
-from pathlib import Path
-
 import psycopg
 import pytest
 
+from iris.seed_data import load_seeds
 from iris.spatial_indexes import BESS_QUERY, PEATLAND_QUERY, explain_plan, plan_uses_gist
-
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
-SEED_FILES = (
-    PROJECT_ROOT / "seed" / "source_run.sql",
-    PROJECT_ROOT / "seed" / "parcel.sql",
-    PROJECT_ROOT / "seed" / "substation.sql",
-    PROJECT_ROOT / "seed" / "peatland.sql",
-)
 
 
 @pytest.fixture
 def pilot_seeded_db(migrated_database: str) -> str:
-    with psycopg.connect(migrated_database) as conn:
-        with conn.cursor() as cur:
-            for path in SEED_FILES:
-                cur.execute(path.read_text(encoding="utf-8"))
-        conn.commit()
+    load_seeds(migrated_database, include_staging=False)
     return migrated_database
 
 
