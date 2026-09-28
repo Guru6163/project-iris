@@ -28,3 +28,4 @@ def test_foundation_migration_recorded(migrated_database: str) -> None:
     assert "001_foundation" in versions
     assert "002_source_run" in versions
     assert "003_parcel" in versions
+    assert "004_substation" in versions

@@ -71,9 +71,16 @@ docker compose exec -T db psql -U iris -d iris -f - < seed/parcel.sql
 docker compose exec -T db psql -U iris -d iris < queries/verify_parcel.sql
 ```
 
+`iris_core.substation` stores country-scoped substation sites (`PRIMARY KEY (country_code, substation_id)`) for proximity screening. Load after `source_run` seed:
+
+```bash
+docker compose exec -T db psql -U iris -d iris -f - < seed/substation.sql
+docker compose exec -T db psql -U iris -d iris < queries/verify_substation.sql
+```
+
 ### Geometry / CRS
 
-Parcel boundaries use `geom geometry(MultiPolygon, 4326)` — **EPSG:4326 (WGS 84)**. Longitude/latitude in degrees is a practical default for a multi-country pilot, interoperates with common feeds, and keeps one CRS across regions until a country needs a local projected SRID for metric work.
+Core geometries use **EPSG:4326 (WGS 84)**. Parcels are `MultiPolygon`; substations are `Point` for site location and distance screening. Longitude/latitude in degrees is a practical default for a multi-country pilot until a country needs a local projected SRID for metric work.
 
 ## Python & tests
 
