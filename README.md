@@ -85,9 +85,20 @@ docker compose exec -T db psql -U iris -d iris -f - < seed/peatland.sql
 docker compose exec -T db psql -U iris -d iris < queries/verify_peatland.sql
 ```
 
+`iris_core.screening_layer` holds derived screening footprints. Load after `source_run` (and `parcel` for overlap checks):
+
+```bash
+docker compose exec -T db psql -U iris -d iris -f - < seed/screening_layer.sql
+docker compose exec -T db psql -U iris -d iris < queries/verify_screening_layer.sql
+```
+
+### Screening layers (design)
+
+`screening_layer` is a **generic derived geometry** table: it stores the output of a screening job as `geom` plus a `layer_code` label (for example `PEATLAND_PARCEL_OVERLAP`), not foreign keys to `parcel`, `peatland`, or `substation`. That avoids duplicating business attributes and keeps one table for multiple pilot screens. Provenance is anchored with `source_run_id` (and the usual `source_id` / `source_date` fields). Relationships to input entities are evaluated at query time with spatial predicates (`ST_Intersects`, `ST_DWithin`, and so on).
+
 ### Geometry / CRS
 
-Core geometries use **EPSG:4326 (WGS 84)**. Parcels and peatland are `MultiPolygon`; substations are `Point` for site location and distance screening. Longitude/latitude in degrees is a practical default for a multi-country pilot until a country needs a local projected SRID for metric work.
+Core geometries use **EPSG:4326 (WGS 84)**. Parcels, peatland, and screening layers are `MultiPolygon`; substations are `Point` for site location and distance screening. Longitude/latitude in degrees is a practical default for a multi-country pilot until a country needs a local projected SRID for metric work.
 
 ## Python & tests
 

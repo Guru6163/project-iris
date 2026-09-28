@@ -3,6 +3,8 @@ from pathlib import Path
 import psycopg
 import pytest
 
+from tests.conftest import RESET_CORE_TABLES_SQL
+
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 SOURCE_RUN_SEED = PROJECT_ROOT / "seed" / "source_run.sql"
 PARCEL_SEED = PROJECT_ROOT / "seed" / "parcel.sql"
@@ -17,9 +19,7 @@ def seeded_peatland(migrated_database: str) -> str:
     peatland_sql = PEATLAND_SEED.read_text(encoding="utf-8")
     with psycopg.connect(migrated_database) as conn:
         with conn.cursor() as cur:
-            cur.execute("TRUNCATE iris_core.peatland;")
-            cur.execute("TRUNCATE iris_core.parcel;")
-            cur.execute("TRUNCATE iris_core.source_run RESTART IDENTITY;")
+            cur.execute(RESET_CORE_TABLES_SQL)
             cur.execute(source_sql)
             cur.execute(parcel_sql)
             cur.execute(peatland_sql)

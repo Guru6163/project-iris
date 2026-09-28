@@ -3,6 +3,8 @@ from pathlib import Path
 import psycopg
 import pytest
 
+from tests.conftest import RESET_CORE_TABLES_SQL
+
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 SOURCE_RUN_SEED = PROJECT_ROOT / "seed" / "source_run.sql"
 VERIFY_QUERIES = PROJECT_ROOT / "queries" / "verify_source_run.sql"
@@ -13,7 +15,7 @@ def seeded_source_run(migrated_database: str) -> str:
     sql = SOURCE_RUN_SEED.read_text(encoding="utf-8")
     with psycopg.connect(migrated_database) as conn:
         with conn.cursor() as cur:
-            cur.execute("TRUNCATE iris_core.source_run RESTART IDENTITY;")
+            cur.execute(RESET_CORE_TABLES_SQL)
             cur.execute(sql)
         conn.commit()
     return migrated_database

@@ -18,6 +18,17 @@ def database_url() -> str:
     return _database_url()
 
 
+RESET_CORE_TABLES_SQL = """
+TRUNCATE TABLE
+    iris_core.screening_layer,
+    iris_core.peatland,
+    iris_core.substation,
+    iris_core.parcel,
+    iris_core.source_run
+RESTART IDENTITY CASCADE;
+"""
+
+
 @pytest.fixture(scope="session")
 def migrated_database(database_url: str) -> str:
     try:
