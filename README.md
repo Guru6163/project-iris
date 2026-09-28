@@ -36,6 +36,22 @@ Prerequisites: [Docker](https://docs.docker.com/get-docker/) with Compose.
    docker compose down
    ```
 
+## Database migrations
+
+SQL files live in `migrations/` and run in sorted filename order. Applied versions are tracked in `public.iris_migrations`.
+
+**Initialize or rebuild from an empty database** (drops and recreates the `iris` database, then applies all migrations):
+
+```bash
+./scripts/rebuild_db.sh
+```
+
+Apply pending migrations only (safe on an already-initialized database):
+
+```bash
+python -m iris.migrate
+```
+
 ## Python & tests
 
 Requires Python 3.12+.
@@ -47,4 +63,4 @@ pip install -e ".[dev]"
 pytest
 ```
 
-Database-related tests expect the Docker service from `.env.example` to be running.
+Database-related tests expect Docker to be running and migrations applied (`./scripts/rebuild_db.sh` or `python -m iris.migrate`).
