@@ -20,6 +20,7 @@ def database_url() -> str:
 
 RESET_CORE_TABLES_SQL = """
 TRUNCATE TABLE
+    iris_core.evidence,
     iris_core.screening_layer,
     iris_core.peatland,
     iris_core.substation,

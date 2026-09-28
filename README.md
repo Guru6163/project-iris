@@ -92,9 +92,29 @@ docker compose exec -T db psql -U iris -d iris -f - < seed/screening_layer.sql
 docker compose exec -T db psql -U iris -d iris < queries/verify_screening_layer.sql
 ```
 
+`iris_core.evidence` records which country-scoped entities contributed to a screening layer. Load after `source_run`, business seeds, and `screening_layer`:
+
+```bash
+docker compose exec -T db psql -U iris -d iris -f - < seed/evidence.sql
+docker compose exec -T db psql -U iris -d iris < queries/verify_evidence.sql
+```
+
+### Schema (iris_core)
+
+| Table | Role |
+| --- | --- |
+| `source_run` | Ingestion run metadata and status |
+| `parcel` | Country-scoped land parcels (`country_code`, `parcel_id`) |
+| `substation` | Country-scoped substation sites (`country_code`, `substation_id`) |
+| `peatland` | Country-scoped peatland footprints (`country_code`, `peatland_id`) |
+| `screening_layer` | Derived screening geometry per run (`source_run_id`, `layer_code`, `geom`) |
+| `evidence` | Links a screening layer to input entities (`entity_type`, `entity_id`) and `source_run_id` |
+
+Provenance fields (`source_id`, `source_date`, `created_at`) appear on business and derived tables. `evidence` uses foreign keys to `screening_layer` (country-scoped composite key) and `source_run`, while `entity_type` + `entity_id` + `country_code` reference parcel/peatland/substation without polymorphic foreign keys.
+
 ### Screening layers (design)
 
-`screening_layer` is a **generic derived geometry** table: it stores the output of a screening job as `geom` plus a `layer_code` label (for example `PEATLAND_PARCEL_OVERLAP`), not foreign keys to `parcel`, `peatland`, or `substation`. That avoids duplicating business attributes and keeps one table for multiple pilot screens. Provenance is anchored with `source_run_id` (and the usual `source_id` / `source_date` fields). Relationships to input entities are evaluated at query time with spatial predicates (`ST_Intersects`, `ST_DWithin`, and so on).
+`screening_layer` is a **generic derived geometry** table: it stores the output of a screening job as `geom` plus a `layer_code` label (for example `PEATLAND_PARCEL_OVERLAP`), not foreign keys to `parcel`, `peatland`, or `substation`. That avoids duplicating business attributes and keeps one table for multiple pilot screens. Provenance is anchored with `source_run_id` (and the usual `source_id` / `source_date` fields). **`evidence`** stores explainability links from a layer to the country-scoped entities that informed the screen; spatial predicates can still validate those links.
 
 ### Geometry / CRS
 
