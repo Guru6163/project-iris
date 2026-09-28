@@ -92,52 +92,16 @@ python -m iris.seed_data --core-only
 
 See `seed/README.md` for per-file layout. Fixture geography: **IN/KA** (Bangalore), **DE/BE+BY** (Berlin + Bavaria), **US/VA** (DC area).
 
-`iris_core.source_run` records provenance and execution for each ingestion (`source_id`, `source_date`, `created_at`, run status/timestamps). Example checks after seeding:
+Assessment scope and intentional design choices: [docs/assessment_scope.md](docs/assessment_scope.md).
+
+Optional SQL spot-checks after `./scripts/seed_data.sh` (see `queries/verify_*.sql`):
 
 ```bash
 docker compose exec -T db psql -U iris -d iris < queries/verify_source_run.sql
-```
-
-Example checks (after loading the seed):
-
-```bash
-docker compose exec -T db psql -U iris -d iris < queries/verify_source_run.sql
-```
-
-`iris_core.parcel` stores country-scoped parcels (`PRIMARY KEY (country_code, parcel_id)`). Load sample data after `source_run` seed:
-
-```bash
-docker compose exec -T db psql -U iris -d iris -f - < seed/parcel.sql
 docker compose exec -T db psql -U iris -d iris < queries/verify_parcel.sql
 ```
 
-`iris_core.substation` stores country-scoped substation sites (`PRIMARY KEY (country_code, substation_id)`) for proximity screening. Load after `source_run` seed:
-
-```bash
-docker compose exec -T db psql -U iris -d iris -f - < seed/substation.sql
-docker compose exec -T db psql -U iris -d iris < queries/verify_substation.sql
-```
-
-`iris_core.peatland` stores country-scoped peatland footprints (`PRIMARY KEY (country_code, peatland_id)`). `representation` is `observed` or `inferred` so screening can distinguish mapped vs modelled extents without storing numeric uncertainty. Load after `source_run` (and `parcel` if using overlap checks):
-
-```bash
-docker compose exec -T db psql -U iris -d iris -f - < seed/peatland.sql
-docker compose exec -T db psql -U iris -d iris < queries/verify_peatland.sql
-```
-
-`iris_core.screening_layer` holds derived screening footprints. Load after `source_run` (and `parcel` for overlap checks):
-
-```bash
-docker compose exec -T db psql -U iris -d iris -f - < seed/screening_layer.sql
-docker compose exec -T db psql -U iris -d iris < queries/verify_screening_layer.sql
-```
-
-`iris_core.evidence` records which country-scoped entities contributed to a screening layer. Load after `source_run`, business seeds, and `screening_layer`:
-
-```bash
-docker compose exec -T db psql -U iris -d iris -f - < seed/evidence.sql
-docker compose exec -T db psql -U iris -d iris < queries/verify_evidence.sql
-```
+To load individual seed files instead of the bundle, run scripts under `seed/` in dependency order (`source_run` first); see `seed/README.md`.
 
 ### Staging → core flow
 
@@ -155,10 +119,10 @@ Promote (Python):
 python -m iris.promote 1
 ```
 
-Or run the SQL example:
+Or run the SQL example (default `ingest_run_id=1`; override with `-v ingest_run_id=N`):
 
 ```bash
-docker compose exec -T db psql -U iris -d iris < queries/promote_staging_parcel.sql
+docker compose exec -T db psql -U iris -d iris -v ingest_run_id=1 -f queries/promote_staging_parcel.sql
 ```
 
 Entity-relationship diagram (PKs, FKs, country-scoped links): [docs/schema.md](docs/schema.md).
@@ -179,7 +143,7 @@ Entity-relationship diagram (PKs, FKs, country-scoped links): [docs/schema.md](d
 | Table | Role |
 | --- | --- |
 | `ingest_run` | Staged batch metadata (`source_id`, `source_date`, `record_format`) |
-| `parcel` | Parcel rows awaiting promotion (`promoted_at` NULL until promoted) |
+| `parcel` | Parcel rows awaiting promotion (`promoted_at` NULL until promoted); pilot promotes **parcels only** (other entities load into core directly) |
 
 Provenance fields (`source_id`, `source_date`, `created_at`) appear on business and derived tables. `source_run` is ingestion metadata and is not country-scoped (runs may feed multiple countries). All other `iris_core` entity tables require `country_code NOT NULL` with primary keys on `(country_code, <entity_id>)`. `evidence` foreign-keys `screening_layer` on `(country_code, screening_layer_id)`; a trigger enforces that `entity_id` resolves to an entity in the same `country_code` and that `source_run_id` matches the linked screening layer.
 

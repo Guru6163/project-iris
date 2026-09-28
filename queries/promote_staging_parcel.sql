@@ -1,4 +1,11 @@
--- Promote ingest_run_id = 1 staged parcels into iris_core (idempotent on parcel PK).
+-- Promote staged parcels into iris_core (idempotent on parcel PK).
+-- psql variable ingest_run_id (default 1):
+--   docker compose exec -T db psql -U iris -d iris -v ingest_run_id=1 -f queries/promote_staging_parcel.sql
+\if :{?ingest_run_id}
+\else
+\set ingest_run_id 1
+\endif
+
 BEGIN;
 
 WITH new_run AS (
@@ -16,7 +23,7 @@ WITH new_run AS (
         ir.created_at,
         now()
     FROM iris_staging.ingest_run AS ir
-    WHERE ir.ingest_run_id = 1
+    WHERE ir.ingest_run_id = :ingest_run_id
     RETURNING source_run_id, source_id, source_date
 ),
 inserted AS (
@@ -37,14 +44,14 @@ inserted AS (
         nr.source_date
     FROM iris_staging.parcel AS sp
     CROSS JOIN new_run AS nr
-    WHERE sp.ingest_run_id = 1
+    WHERE sp.ingest_run_id = :ingest_run_id
       AND sp.promoted_at IS NULL
     ON CONFLICT (country_code, parcel_id) DO NOTHING
     RETURNING country_code, parcel_id
 )
 UPDATE iris_staging.parcel AS sp
 SET promoted_at = now()
-WHERE sp.ingest_run_id = 1
+WHERE sp.ingest_run_id = :ingest_run_id
   AND sp.promoted_at IS NULL
   AND EXISTS (SELECT 1 FROM inserted);
 
