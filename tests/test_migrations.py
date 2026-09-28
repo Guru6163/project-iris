@@ -1,16 +1,4 @@
 import psycopg
-import pytest
-
-from iris.migrate import apply_migrations
-
-
-@pytest.fixture(scope="session")
-def migrated_database(database_url: str) -> str:
-    try:
-        apply_migrations(database_url)
-    except psycopg.OperationalError as exc:
-        pytest.skip(f"database not available: {exc}")
-    return database_url
 
 
 def test_foundation_schemas_exist(migrated_database: str) -> None:
@@ -38,3 +26,4 @@ def test_foundation_migration_recorded(migrated_database: str) -> None:
             versions = [row[0] for row in cur.fetchall()]
 
     assert "001_foundation" in versions
+    assert "002_source_run" in versions

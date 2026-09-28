@@ -1,6 +1,9 @@
 import os
 
+import psycopg
 import pytest
+
+from iris.migrate import apply_migrations
 
 
 def _database_url() -> str:
@@ -13,3 +16,12 @@ def _database_url() -> str:
 @pytest.fixture(scope="session")
 def database_url() -> str:
     return _database_url()
+
+
+@pytest.fixture(scope="session")
+def migrated_database(database_url: str) -> str:
+    try:
+        apply_migrations(database_url)
+    except psycopg.OperationalError as exc:
+        pytest.skip(f"database not available: {exc}")
+    return database_url

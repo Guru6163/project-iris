@@ -52,6 +52,18 @@ Apply pending migrations only (safe on an already-initialized database):
 python -m iris.migrate
 ```
 
+`iris_core.source_run` records provenance and execution for each ingestion (`source_id`, `source_date`, `created_at`, run status/timestamps). Load the deterministic sample row:
+
+```bash
+docker compose exec -T db psql -U iris -d iris -f - < seed/source_run.sql
+```
+
+Example checks (after loading the seed):
+
+```bash
+docker compose exec -T db psql -U iris -d iris < queries/verify_source_run.sql
+```
+
 ## Python & tests
 
 Requires Python 3.12+.
