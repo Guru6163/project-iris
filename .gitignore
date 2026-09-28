@@ -9,10 +9,19 @@ __pycache__/
 dist/
 build/
 
-# Environment
+# Environment (never commit; copy from .env.example)
 .env
+.env.local
+.env.*.local
+
+# Database dumps / local Postgres data
+*.dump
+*.sql.gz
+pgdata/
 
 # OS / editor
 .DS_Store
 .idea/
 .vscode/
+*.swp
+*~
