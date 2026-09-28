@@ -78,9 +78,16 @@ docker compose exec -T db psql -U iris -d iris -f - < seed/substation.sql
 docker compose exec -T db psql -U iris -d iris < queries/verify_substation.sql
 ```
 
+`iris_core.peatland` stores country-scoped peatland footprints (`PRIMARY KEY (country_code, peatland_id)`). `representation` is `observed` or `inferred` so screening can distinguish mapped vs modelled extents without storing numeric uncertainty. Load after `source_run` (and `parcel` if using overlap checks):
+
+```bash
+docker compose exec -T db psql -U iris -d iris -f - < seed/peatland.sql
+docker compose exec -T db psql -U iris -d iris < queries/verify_peatland.sql
+```
+
 ### Geometry / CRS
 
-Core geometries use **EPSG:4326 (WGS 84)**. Parcels are `MultiPolygon`; substations are `Point` for site location and distance screening. Longitude/latitude in degrees is a practical default for a multi-country pilot until a country needs a local projected SRID for metric work.
+Core geometries use **EPSG:4326 (WGS 84)**. Parcels and peatland are `MultiPolygon`; substations are `Point` for site location and distance screening. Longitude/latitude in degrees is a practical default for a multi-country pilot until a country needs a local projected SRID for metric work.
 
 ## Python & tests
 
