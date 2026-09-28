@@ -161,6 +161,8 @@ Or run the SQL example:
 docker compose exec -T db psql -U iris -d iris < queries/promote_staging_parcel.sql
 ```
 
+Entity-relationship diagram (PKs, FKs, country-scoped links): [docs/schema.md](docs/schema.md).
+
 ### Schema (iris_core)
 
 | Table | Role |
