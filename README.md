@@ -99,6 +99,28 @@ docker compose exec -T db psql -U iris -d iris -f - < seed/evidence.sql
 docker compose exec -T db psql -U iris -d iris < queries/verify_evidence.sql
 ```
 
+### Staging → core flow
+
+Raw parcel loads land in `iris_staging.ingest_run` (source metadata) and `iris_staging.parcel` (geometry + country-scoped ids). Promotion creates a `iris_core.source_run` and upserts into `iris_core.parcel`, then sets `promoted_at` on staged rows.
+
+Load staging fixture:
+
+```bash
+docker compose exec -T db psql -U iris -d iris -f - < seed/staging_parcel.sql
+```
+
+Promote (Python):
+
+```bash
+python -m iris.promote 1
+```
+
+Or run the SQL example:
+
+```bash
+docker compose exec -T db psql -U iris -d iris < queries/promote_staging_parcel.sql
+```
+
 ### Schema (iris_core)
 
 | Table | Role |
@@ -109,6 +131,13 @@ docker compose exec -T db psql -U iris -d iris < queries/verify_evidence.sql
 | `peatland` | Country-scoped peatland footprints (`country_code`, `peatland_id`) |
 | `screening_layer` | Derived screening geometry per run (`source_run_id`, `layer_code`, `geom`) |
 | `evidence` | Links a screening layer to input entities (`entity_type`, `entity_id`) and `source_run_id` |
+
+### Schema (iris_staging)
+
+| Table | Role |
+| --- | --- |
+| `ingest_run` | Staged batch metadata (`source_id`, `source_date`, `record_format`) |
+| `parcel` | Parcel rows awaiting promotion (`promoted_at` NULL until promoted) |
 
 Provenance fields (`source_id`, `source_date`, `created_at`) appear on business and derived tables. `source_run` is ingestion metadata and is not country-scoped (runs may feed multiple countries). All other `iris_core` entity tables require `country_code NOT NULL` with primary keys on `(country_code, <entity_id>)`. `evidence` foreign-keys `screening_layer` on `(country_code, screening_layer_id)`; a trigger enforces that `entity_id` resolves to an entity in the same `country_code` and that `source_run_id` matches the linked screening layer.
 

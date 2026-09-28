@@ -33,3 +33,4 @@ def test_foundation_migration_recorded(migrated_database: str) -> None:
     assert "006_screening_layer" in versions
     assert "007_evidence" in versions
     assert "008_country_scope_integrity" in versions
+    assert "009_staging" in versions

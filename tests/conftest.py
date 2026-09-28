@@ -25,7 +25,9 @@ TRUNCATE TABLE
     iris_core.peatland,
     iris_core.substation,
     iris_core.parcel,
-    iris_core.source_run
+    iris_core.source_run,
+    iris_staging.parcel,
+    iris_staging.ingest_run
 RESTART IDENTITY CASCADE;
 """
 
