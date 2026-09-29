@@ -35,6 +35,7 @@ Entity-relationship diagram: [docs/schema.md](docs/schema.md).
 - [Docker](https://docs.docker.com/get-docker/) with Compose (PostGIS image `postgis/postgis:16-3.4`)
 - Python **3.12+**
 - macOS, Linux, or Windows with WSL2 (commands assume a POSIX shell)
+- **Docker daemon running** before `./scripts/bootstrap.sh`, `./scripts/reset_db.sh`, `./scripts/rebuild_db.sh`, or any `docker compose` command
 
 No cloud accounts or API keys are required. Default database credentials are local-dev placeholders in `.env.example` only.
 
@@ -112,7 +113,7 @@ Fixture geography: **IN/KA**, **DE/BE+BY**, **US/VA**. File order and contents: 
 
 ## 8. Test command
 
-Full suite (requires Postgres with migrations applied; many tests migrate or reset tables automatically):
+Full suite (requires a reachable Postgres with PostGIS; start Docker with `docker compose up -d`, apply migrations, or use `./scripts/bootstrap.sh` which does both and runs tests):
 
 ```bash
 pytest
